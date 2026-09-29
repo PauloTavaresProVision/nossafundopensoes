@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Simulador do Fundo de Pensões Complementar da NOSSA Seguros">
+<title>Simulador - Fundo de Pensões Complementar | NOSSA Seguros</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<style>
+  :root {
+    --verde: #7FBE3D;
+    --verde-escuro: #689E2F;
+    --navy: #102E60;
+    --navy-escuro: #0A1D3F;
+    --texto: #1A2238;
+    --texto-suave: #3D4660;
+    --texto-claro: #6B7591;
+    --borda: #D6DBE6;
+    --borda-suave: #E8EBF2;
+    --fundo: #F5F7FA;
+    --branco: #FFFFFF;
+    /* séries do gráfico (validadas para daltonismo sobre fundo branco) */
+    --serie-contrib: #2F5DA8;
+    --serie-rend: #6FAE30;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--fundo);
+    color: var(--texto);
+    line-height: 1.55;
+    font-size: 16px;
+  }
+  img { max-width: 100%; height: auto; }
+  [hidden] { display: none !important; }
+
+  /* ================= Cabeçalho ================= */
+  header.site {
+    background: var(--branco);
+    border-bottom: 1px solid var(--borda);
+    padding: .9rem 1.25rem;
+  }
+  .header-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .header-inner img.logo { height: 44px; width: auto; display: block; }
+  .header-info {
+    font-size: .8rem; color: var(--texto-claro); text-align: right; line-height: 1.4;
+  }
+  .header-info strong { color: var(--navy); display: block; font-size: .84rem; }
+  @media (max-width: 560px) {
+    .header-inner img.logo { height: 34px; }
+    .header-info { display: none; }
+  }
+
+  /* ================= Faixa de título ================= */
+  .faixa {
+    background: var(--navy-escuro);
+    border-bottom: 4px solid var(--verde);
+    color: #fff;
+    padding: 2rem 1.25rem;
+  }
+  .faixa-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  }
+  .faixa-logo { flex-shrink: 0; height: 72px; width: auto; display: block; }
+  @media (max-width: 820px) { .faixa-logo { height: 52px; } }
+  @media (max-width: 560px) {
+    .faixa-inner { flex-direction: column-reverse; align-items: flex-start; gap: 1rem; }
+    .faixa-logo { height: 44px; }
+  }
+  .faixa .categoria {
+    font-size: .74rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--verde);
+    margin-bottom: .35rem;
+  }
+  .faixa h1 {
+    font-size: clamp(1.3rem, 3.6vw, 1.75rem);
+    font-weight: 700; line-height: 1.25;
+  }
+  .faixa p {
+    margin-top: .4rem; font-size: .92rem; color: #B8C4DC; max-width: 46rem;
+  }
+
+  /* ================= Layout ================= */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 2rem;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 920px) {
+    main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  }
+
+  .card {
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: 6px;
+    padding: 1.6rem;
+    min-width: 0;
+  }
+  @media (max-width: 560px) { .card { padding: 1.15rem; } }
+
+  .section-header {
+    font-size: .82rem; font-weight: 700; color: var(--navy-escuro);
+    text-transform: uppercase; letter-spacing: .07em;
+    border-left: 4px solid var(--verde);
+    padding-left: .7rem;
+    margin-bottom: 1.3rem;
+    line-height: 1.4;
+  }
+
+  /* ================= Formulário ================= */
+  label {
+    font-size: .8rem; font-weight: 600; color: var(--texto-suave);
+    display: block; margin-bottom: .3rem;
+  }
+  label .opc { font-weight: 400; color: var(--texto-claro); }
+  input[type="text"], input[type="date"] {
+    width: 100%;
+    height: 2.65rem;
+    padding: 0 .8rem;
+    border: 1px solid var(--borda);
+    border-radius: 4px;
+    font-size: .92rem;
+    font-family: inherit;
+    color: var(--texto);
+    background: var(--branco);
+  }
+  input::placeholder { color: #A9B1C7; }
+  input:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(16,46,96,.12);
+  }
+  input.invalido { border-color: #B03A2E; }
+  .obrigatorio { color: #B03A2E; }
+  .legenda-obrigatorio { font-size: .74rem; color: var(--texto-claro); margin-top: -.2rem; }
+  .campo { margin-bottom: 1rem; }
+  .ajuda { font-size: .74rem; color: var(--texto-claro); margin-top: .3rem; }
+  .erro-campo { font-size: .76rem; color: #922B21; margin-top: .3rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; gap: 0; } }
+
+  .subtitulo {
+    font-size: .8rem; font-weight: 700; color: var(--navy-escuro);
+    margin: 1.3rem 0 .7rem;
+    padding-bottom: .45rem;
+    border-bottom: 1px solid var(--borda-suave);
+  }
+
+  .tabela-pressupostos { width: 100%; border-collapse: collapse; }
+  .tabela-pressupostos td {
+    padding: .45rem 0;
+    font-size: .84rem;
+    border-bottom: 1px solid var(--borda-suave);
+    color: var(--texto-suave);
+  }
+  .tabela-pressupostos tr:last-child td { border-bottom: none; }
+  .tabela-pressupostos td:last-child {
+    text-align: right; font-weight: 700; color: var(--navy-escuro);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+
+  .nota {
+    font-size: .78rem; color: var(--texto-suave);
+    background: var(--fundo);
+    border: 1px solid var(--borda-suave);
+    border-radius: 4px;
+    padding: .7rem .9rem; margin-top: 1.2rem;
+    line-height: 1.55;
+  }
+  .nota strong { color: var(--navy); }
+
+  /* ================= Resultados ================= */
+  .tabela-resumo { width: 100%; border-collapse: collapse; }
+  .tabela-resumo td {
+    padding: .55rem 0;
+    font-size: .86rem;
+    border-bottom: 1px solid var(--borda-suave);
+    color: var(--texto-suave);
+  }
+  .tabela-resumo td:last-child {
+    text-align: right; font-weight: 700; color: var(--navy-escuro);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    padding-right: 1.25rem;
+  }
+  .tabela-resumo tr.total td { color: var(--navy-escuro); font-weight: 700; }
+
+  .premio-principal {
+    background: var(--navy-escuro);
+    border-left: 4px solid var(--verde);
+    border-radius: 4px;
+    color: #fff;
+    padding: 1.05rem 1.25rem;
+    margin: 1.2rem 0 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .4rem 1rem; flex-wrap: wrap;
+  }
+  .premio-principal .rotulo {
+    font-size: .74rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--verde);
+  }
+  .premio-principal .rotulo small {
+    display: block; text-transform: none; letter-spacing: 0;
+    font-weight: 500; color: #8FA2C6; font-size: .76rem; margin-top: .1rem;
+  }
+  .premio-principal .valor {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    font-weight: 700; font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .premio-principal .valor small { font-size: .95rem; font-weight: 600; color: #8FA2C6; }
+
+  .tabela-premios { width: 100%; border-collapse: collapse; margin-bottom: .2rem; }
+  .tabela-premios td {
+    padding: .6rem 0;
+    font-size: .88rem;
+    border-bottom: 1px solid var(--borda-suave);
+    color: var(--texto-suave);
+  }
+  .tabela-premios tr:last-child td { border-bottom: none; }
+  .tabela-premios td:last-child {
+    text-align: right; font-weight: 700; color: var(--navy-escuro);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    padding-right: 1.25rem;
+  }
+  .tabela-premios .aoa { font-weight: 500; color: var(--texto-claro); font-size: .78rem; }
+  .ponto {
+    display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+    margin-right: .45rem; vertical-align: -1px;
+  }
+
+  .aviso-resultado {
+    font-size: .84rem; color: #922B21;
+    background: #FDF1F0; border: 1px solid #EFC4BE;
+    border-radius: 4px; padding: .7rem .9rem; margin-top: 1rem;
+  }
+
+  .btn-primary {
+    display: block; width: 100%;
+    background: var(--verde); color: #fff; border: none;
+    height: 2.9rem; border-radius: 4px;
+    font-size: .82rem; font-weight: 700; font-family: inherit;
+    text-transform: uppercase; letter-spacing: .06em;
+    cursor: pointer; margin-top: 1.1rem;
+  }
+  .btn-primary:hover { background: var(--verde-escuro); }
+  .btn-primary:disabled { background: #A9B1C7; cursor: default; }
+
+
+  /* ================= Gráfico ================= */
+  .grafico-card { grid-column: 1 / -1; }
+  .grafico-topo {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: .8rem 1.5rem; flex-wrap: wrap; margin-bottom: .6rem;
+  }
+  .grafico-topo .section-header { margin-bottom: .3rem; }
+  .grafico-sub { font-size: .82rem; color: var(--texto-claro); }
+  .legenda { display: flex; gap: .3rem 1.2rem; flex-wrap: wrap; font-size: .8rem; color: var(--texto-suave); margin: .4rem 0 .2rem; }
+  .legenda span { display: inline-flex; align-items: center; }
+  .btn-tabela {
+    background: var(--branco);
+    border: 1px solid var(--navy);
+    color: var(--navy);
+    padding: .5rem 1rem; border-radius: 4px; cursor: pointer;
+    font-size: .76rem; font-weight: 700; font-family: inherit;
+    text-transform: uppercase; letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .btn-tabela:hover { background: var(--navy); color: #fff; }
+
+  .grafico-area { position: relative; width: 100%; }
+  .grafico-area svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .grafico-area .eixo text { font-size: 11px; fill: var(--texto-claro); font-variant-numeric: tabular-nums; }
+  .grafico-area .grelha line { stroke: var(--borda-suave); stroke-width: 1; }
+  .grafico-area .base { stroke: var(--borda); stroke-width: 1; }
+  .grafico-area .coluna-hover { fill: transparent; cursor: default; }
+  .grafico-area .coluna-hover.activa { fill: rgba(16,46,96,.05); }
+  .grafico-area .rotulo-final { font-size: 12px; font-weight: 700; fill: var(--navy-escuro); font-variant-numeric: tabular-nums; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 5;
+    background: var(--branco); border: 1px solid var(--borda);
+    border-radius: 6px; box-shadow: 0 6px 20px rgba(10,29,63,.14);
+    padding: .6rem .75rem; font-size: .78rem; color: var(--texto-suave);
+    min-width: 13rem; opacity: 0; transition: opacity .1s;
+  }
+  .tooltip.visivel { opacity: 1; }
+  .tooltip .tt-titulo { font-weight: 700; color: var(--navy-escuro); margin-bottom: .35rem; }
+  .tooltip .tt-linha { display: flex; justify-content: space-between; gap: 1rem; padding: .1rem 0; }
+  .tooltip .tt-linha b { color: var(--navy-escuro); font-variant-numeric: tabular-nums; }
+  .tooltip .tt-total { border-top: 1px solid var(--borda-suave); margin-top: .3rem; padding-top: .3rem; }
+
+  .tabela-anual-wrap { overflow-x: auto; margin-top: 1rem; border: 1px solid var(--borda-suave); border-radius: 6px; }
+  .tabela-anual { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 38rem; }
+  .tabela-anual th, .tabela-anual td { padding: .5rem .75rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tabela-anual th { background: var(--fundo); color: var(--navy-escuro); font-weight: 700; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; }
+  .tabela-anual td { border-top: 1px solid var(--borda-suave); color: var(--texto-suave); }
+  .tabela-anual th:first-child, .tabela-anual td:first-child,
+  .tabela-anual th:nth-child(2), .tabela-anual td:nth-child(2) { text-align: left; }
+  .tabela-anual td:last-child { font-weight: 700; color: var(--navy-escuro); }
+
+  /* ================= Telemóvel ================= */
+  @media (max-width: 560px) {
+    /* 16px evita o zoom automático do iOS ao tocar nos campos */
+    input[type="text"], input[type="date"] { font-size: 16px; height: 2.9rem; }
+    .btn-tabela { width: 100%; min-height: 2.9rem; }
+    .grafico-topo > div { width: 100%; }
+    /* tabela anual: só idade, contribuições acumuladas e saldo, sem scroll horizontal */
+    .tabela-anual { min-width: 0; font-size: .78rem; }
+    .tabela-anual th, .tabela-anual td { padding: .5rem .55rem; }
+    .tabela-anual th { white-space: normal; font-size: .68rem; }
+    .tabela-anual th:nth-child(1), .tabela-anual td:nth-child(1),
+    .tabela-anual th:nth-child(3), .tabela-anual td:nth-child(3),
+    .tabela-anual th:nth-child(5), .tabela-anual td:nth-child(5) { display: none; }
+  }
+
+  .vazio { font-size: .86rem; color: var(--texto-claro); padding: 2rem 0; text-align: center; }
+
+  /* ================= Notas ================= */
+  .legal {
+    grid-column: 1 / -1;
+    font-size: .74rem; color: var(--texto-claro);
+    line-height: 1.6;
+  }
+  .legal p { margin-bottom: .45rem; }
+  .legal strong { color: var(--texto-suave); }
+
+  /* ================= Rodapé ================= */
+  footer { margin-top: 1.5rem; }
+  .footer-topo {
+    background: var(--branco);
+    border-top: 1px solid var(--borda);
+    padding: 2rem 1.25rem;
+  }
+  .footer-topo-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; gap: 2rem;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) {
+    .footer-topo-inner { grid-template-columns: 1.2fr 1fr 1.3fr; gap: 2.5rem; }
+  }
+  .footer-topo img.logo-rodape { height: 40px; width: auto; display: block; margin-bottom: .7rem; }
+  .footer-col { font-size: .82rem; color: var(--texto-suave); line-height: 1.7; }
+  .footer-col h3 {
+    font-size: .76rem; font-weight: 700; color: var(--navy-escuro);
+    text-transform: uppercase; letter-spacing: .07em;
+    margin-bottom: .6rem;
+  }
+  .footer-col a { color: var(--navy); text-decoration: none; font-weight: 600; }
+  .footer-col a:hover { text-decoration: underline; }
+  .footer-base {
+    background: var(--navy-escuro); color: #8FA2C6;
+    font-size: .76rem;
+    padding: .9rem 1.25rem;
+  }
+  .footer-base-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+  }
+
+  /* ================= Impressão (Guardar em PDF) ================= */
+  .so-impressao { display: none; }
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff; font-size: 12px; }
+    header.site, .faixa, footer, .btn-primary, .btn-tabela, .form-simulacao, .tooltip { display: none !important; }
+    .so-impressao { display: block; }
+    .cabecalho-impressao { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--verde); padding-bottom: 8px; margin-bottom: 12px; }
+    .cabecalho-impressao img { height: 36px; }
+    .cabecalho-impressao div { text-align: right; font-size: 11px; color: var(--texto-suave); }
+    .cabecalho-impressao strong { display: block; color: var(--navy-escuro); font-size: 13px; }
+    main { display: block; max-width: 100%; margin: 0; padding: 0; }
+    .card { border: 1px solid #ccc; margin-bottom: .8rem; page-break-inside: avoid; }
+    .premio-principal, .ponto, svg rect { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tabela-anual-wrap { overflow: visible; }
+    .tabela-anual { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="header-inner">
+    <img class="logo" src="logo-nossa.png" alt="NOSSA Seguros">
+    <div class="header-info">
+      <strong>Fundo de Pensões Complementar</strong>
+      Vida e Fundo de Pensões
+    </div>
+  </div>
+</header>
+
+<section class="faixa">
+  <div class="faixa-inner">
+    <div>
+      <div class="categoria">Vida e Fundo de Pensões</div>
+      <h1>Simulador - Fundo de Pensões Complementar</h1>
+      <p>Indique a sua data de nascimento e o seu salário mensal e veja quanto pode acumular até à idade de reforma e o valor estimado da sua pensão mensal.</p>
+    </div>
+    <img class="faixa-logo" src="logo-nossa-pensoes-negativo.svg" alt="NOSSA Pensões">
+  </div>
+</section>
+
+<main>
+  <div class="so-impressao cabecalho-impressao">
+    <img src="logo-nossa.png" alt="NOSSA Seguros">
+    <div><strong>Simulação - Fundo de Pensões Complementar</strong><span id="imp-meta"></span></div>
+  </div>
+
+  <!-- ===================== Formulário ===================== -->
+  <section class="card form-simulacao">
+    <h2 class="section-header">Dados da Simulação</h2>
+
+    <div class="campo">
+      <label for="nome">Nome <span class="opc">(opcional)</span></label>
+      <input type="text" id="nome" placeholder="Ex.: Joaquim dos Santos" autocomplete="name">
+    </div>
+
+    <div class="grid-2">
+      <div class="campo">
+        <label for="nascimento">Data de nascimento <span class="obrigatorio">*</span></label>
+        <input type="date" id="nascimento">
+        <p class="erro-campo" id="erro-nascimento" hidden></p>
+      </div>
+      <div class="campo">
+        <label for="salario">Salário mensal (Kz) <span class="obrigatorio">*</span></label>
+        <input type="text" inputmode="numeric" id="salario" placeholder="Ex.: 500 000">
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="voluntaria">Contribuição adicional voluntária mensal (Kz) <span class="opc">(opcional)</span></label>
+      <input type="text" inputmode="numeric" id="voluntaria" placeholder="0">
+      <p class="ajuda">Valor que decide entregar todos os meses, além da contribuição obrigatória.</p>
+    </div>
+    <p class="legenda-obrigatorio"><span class="obrigatorio">*</span> Campo de preenchimento obrigatório</p>
+
+    <p class="subtitulo">Pressupostos do Fundo</p>
+    <table class="tabela-pressupostos">
+      <tr><td>Contribuição do colaborador</td><td id="ps-colab"></td></tr>
+      <tr><td>Contribuição da empresa</td><td id="ps-empresa"></td></tr>
+      <tr><td>Taxa de rentabilidade anual</td><td id="ps-rent"></td></tr>
+      <tr><td>Taxa de crescimento salarial anual</td><td id="ps-cresc"></td></tr>
+      <tr><td>N.º de salários por ano</td><td id="ps-salarios"></td></tr>
+      <tr><td>Idade de reforma</td><td id="ps-reforma"></td></tr>
+      <tr><td>Factor de conversão em pensão</td><td id="ps-factor"></td></tr>
+    </table>
+
+    <div class="nota">
+      <strong>Nota:</strong> as contribuições são calculadas sobre o salário mensal e crescem todos os anos à taxa de crescimento salarial. O saldo do fundo é capitalizado à taxa de rentabilidade até à idade de reforma. Os pressupostos são meramente indicativos.
+    </div>
+  </section>
+
+  <!-- ===================== Resultados ===================== -->
+  <section class="card resultados">
+    <h2 class="section-header">Resultado da Simulação</h2>
+
+    <table class="tabela-resumo">
+      <tr><td>Idade actual</td><td id="r-idade">-</td></tr>
+      <tr><td>Anos de contribuição até à reforma</td><td id="r-anos">-</td></tr>
+      <tr><td id="r-colab-rotulo">Contribuição do colaborador (mensal)</td><td id="r-colab">0,00 Kz</td></tr>
+      <tr><td id="r-empresa-rotulo">Contribuição da empresa (mensal)</td><td id="r-empresa">0,00 Kz</td></tr>
+      <tr><td>Contribuição voluntária (mensal)</td><td id="r-vol">0,00 Kz</td></tr>
+      <tr class="total"><td>Total da contribuição mensal</td><td id="r-mensal">0,00 Kz</td></tr>
+      <tr><td>Total da contribuição anual (1.º ano)</td><td id="r-anual">0,00 Kz</td></tr>
+    </table>
+
+    <div class="premio-principal">
+      <div class="rotulo">Pensão Mensal Estimada<small id="p-reforma-rotulo">aos 60 anos</small></div>
+      <div class="valor"><span id="p-pensao">0,00</span> <small>Kz</small></div>
+    </div>
+
+    <table class="tabela-premios">
+      <tr><td>Valor acumulado na reforma</td><td><span id="p-acumulado">0,00</span> <span class="aoa">Kz</span></td></tr>
+      <tr><td><span class="ponto" style="background:var(--serie-contrib)"></span>Total de contribuições</td><td><span id="p-contrib">0,00</span> <span class="aoa">Kz</span></td></tr>
+      <tr><td><span class="ponto" style="background:var(--serie-rend)"></span>Rendimento do fundo</td><td><span id="p-rend">0,00</span> <span class="aoa">Kz</span></td></tr>
+    </table>
+
+    <div class="aviso-resultado" id="aviso-resultado" hidden></div>
+
+    <button type="button" class="btn-primary" id="btn-imprimir">Guardar Simulação em PDF</button>
+
+  </section>
+
+  <!-- ===================== Evolução do fundo ===================== -->
+  <section class="card grafico-card">
+    <div class="grafico-topo">
+      <div>
+        <h2 class="section-header">Evolução do Fundo até à Reforma</h2>
+        <p class="grafico-sub">Saldo acumulado no fim de cada ano, por idade (Kz)</p>
+        <div class="legenda">
+          <span><span class="ponto" style="background:var(--serie-contrib)"></span>Contribuições acumuladas</span>
+          <span><span class="ponto" style="background:var(--serie-rend)"></span>Rendimento acumulado</span>
+        </div>
+      </div>
+      <button type="button" class="btn-tabela" id="btn-tabela" aria-expanded="false">Ver tabela anual</button>
+    </div>
+    <div class="grafico-area" id="grafico">
+      <div class="tooltip" id="tooltip" role="status"></div>
+    </div>
+    <div class="tabela-anual-wrap" id="tabela-anual-wrap" hidden>
+      <table class="tabela-anual">
+        <thead><tr><th>Ano</th><th>Idade</th><th>Contribuição do ano</th><th>Contribuições acumuladas</th><th>Rendimento acumulado</th><th>Saldo no fim do ano</th></tr></thead>
+        <tbody id="tabela-anual"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="legal">
+    <p><strong>Notas:</strong> os pressupostos considerados na presente simulação são meramente indicativos e não constituem garantia de rentabilidade futura.</p>
+    <p>O valor acumulado na reforma é composto pelas contribuições efectuadas, acrescidas da rentabilidade do fundo e do crescimento salarial ao longo do período de contribuição. A pensão mensal corresponde ao valor acumulado dividido pelo factor de conversão e pelo número de pensões por ano.</p>
+    <p>Esta simulação tem carácter meramente informativo e não constitui proposta contratual.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-topo">
+    <div class="footer-topo-inner">
+      <div class="footer-col">
+        <img class="logo-rodape" src="logo-nossa.png" alt="NOSSA Seguros">
+        Nova Sociedade de Seguros de Angola, S.A.
+      </div>
+      <div class="footer-col">
+        <h3>Apoio ao Cliente</h3>
+        Contact Center: <a href="tel:+244923190860">+244 923 190 860</a><br>
+        WhatsApp: <a href="https://wa.me/244923190860" target="_blank" rel="noopener">+244 923 190 860</a><br>
+        <a href="https://www.nossaseguros.ao" target="_blank" rel="noopener">www.nossaseguros.ao</a>
+      </div>
+      <div class="footer-col">
+        <h3>Sobre este Simulador</h3>
+        Simulação do valor acumulado e da pensão mensal no Fundo de Pensões Complementar. Os valores simulados são meramente informativos e não constituem proposta contratual.
+      </div>
+    </div>
+  </div>
+  <div class="footer-base">
+    <div class="footer-base-inner">
+      <div>© <span id="ano"></span> NOSSA Seguros. Todos os direitos reservados.</div>
+      <div>Vida e Fundo de Pensões</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= Pressupostos (Excel "Fundo de Pensões Complementar - Simulador") ================= */
+  var P = {
+    CONTRIB_COLABORADOR: 0.03,
+    CONTRIB_EMPRESA:     0.05,
+    RENTABILIDADE:       0.12,
+    CRESCIMENTO_SALARIAL: 0.05,
+    SALARIOS_ANO:        12,
+    IDADE_REFORMA:       60,
+    FACTOR_CONVERSAO:    11,
+    PENSOES_ANO:         12
+  };
+  var IDADE_MINIMA = 18;
+
+  /* ================= Formatação ================= */
+  function formatAOA(v) {
+    var partes = v.toFixed(2).split('.');
+    return partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + partes[1];
+  }
+  function formatInteiro(v) { return formatAOA(v).replace(/,\d\d$/, ''); }
+  function formatPct(v) { return String(+(v * 100).toFixed(2)).replace('.', ',') + '%'; }
+  /* eixo: 1 200 000 -> "1,2 M" */
+  function formatCompacto(v) {
+    if (v >= 1e9) return String(+(v / 1e9).toFixed(1)).replace('.', ',') + ' mM';
+    if (v >= 1e6) return String(+(v / 1e6).toFixed(1)).replace('.', ',') + ' M';
+    if (v >= 1e3) return String(+(v / 1e3).toFixed(0)) + ' mil';
+    return String(Math.round(v));
+  }
+  function parseKz(inp) {
+    var d = inp.value.replace(/\D/g, '');
+    return d ? Number(d) : 0;
+  }
+  function mascaraKz(e) {
+    var d = e.target.value.replace(/\D/g, '').slice(0, 12);
+    e.target.value = d ? formatInteiro(Number(d)) : '';
+  }
+
+  /* ================= Datas ================= */
+  function hojeISO() {
+    var h = new Date();
+    return h.getFullYear() + '-' + String(h.getMonth() + 1).padStart(2, '0') + '-' + String(h.getDate()).padStart(2, '0');
+  }
+  function lerData(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+  /* idade em anos completos */
+  function idadeCompleta(nasc, hoje) {
+    var idade = hoje.getFullYear() - nasc.getFullYear();
+    if (hoje.getMonth() < nasc.getMonth() ||
+        (hoje.getMonth() === nasc.getMonth() && hoje.getDate() < nasc.getDate())) idade--;
+    return idade;
+  }
+
+  /* ================= Modelo =================
+     Contribuição anual do ano k (k = 0..n-1): CA × (1 + tcs)^k, entregue no início do ano.
+     Saldo no fim do ano: (saldo anterior + contribuição do ano) × (1 + tr).
+     Pensão mensal = valor acumulado / factor de conversão / pensões por ano.        */
+  function simular(salario, voluntaria, idade) {
+    var colab   = salario * P.CONTRIB_COLABORADOR;
+    var empresa = salario * P.CONTRIB_EMPRESA;
+    var mensal  = colab + empresa + voluntaria;
+    var anual   = mensal * P.SALARIOS_ANO;
+    var n = P.IDADE_REFORMA - idade;
+
+    var anos = [], saldo = 0, contribAcum = 0;
+    for (var k = 0; k < n; k++) {
+      var contribAno = anual * Math.pow(1 + P.CRESCIMENTO_SALARIAL, k);
+      contribAcum += contribAno;
+      saldo = (saldo + contribAno) * (1 + P.RENTABILIDADE);
+      anos.push({ ano: k + 1, idade: idade + k + 1, contribAno: contribAno, contribAcum: contribAcum, rendAcum: saldo - contribAcum, saldo: saldo });
+    }
+    return {
+      colab: colab, empresa: empresa, voluntaria: voluntaria, mensal: mensal, anual: anual,
+      n: n, acumulado: saldo, contribuicoes: contribAcum, rendimento: saldo - contribAcum,
+      pensao: saldo / P.FACTOR_CONVERSAO / P.PENSOES_ANO,
+      anos: anos
+    };
+  }
+
+  /* ================= Elementos ================= */
+  var $ = function (id) { return document.getElementById(id); };
+  var inpNome = $('nome'), inpNasc = $('nascimento'), inpSalario = $('salario'), inpVol = $('voluntaria');
+  var erroNasc = $('erro-nascimento'), aviso = $('aviso-resultado'), btnImprimir = $('btn-imprimir');
+  var ultimo = null;
+
+  $('ps-colab').textContent    = formatPct(P.CONTRIB_COLABORADOR) + ' do salário';
+  $('ps-empresa').textContent  = formatPct(P.CONTRIB_EMPRESA) + ' do salário';
+  $('ps-rent').textContent     = formatPct(P.RENTABILIDADE);
+  $('ps-cresc').textContent    = formatPct(P.CRESCIMENTO_SALARIAL);
+  $('ps-salarios').textContent = String(P.SALARIOS_ANO);
+  $('ps-reforma').textContent  = P.IDADE_REFORMA + ' anos';
+  $('ps-factor').textContent   = String(P.FACTOR_CONVERSAO);
+  $('r-colab-rotulo').textContent   = 'Contribuição do colaborador (' + formatPct(P.CONTRIB_COLABORADOR) + ')';
+  $('r-empresa-rotulo').textContent = 'Contribuição da empresa (' + formatPct(P.CONTRIB_EMPRESA) + ')';
+  $('p-reforma-rotulo').textContent = 'aos ' + P.IDADE_REFORMA + ' anos';
+
+  /* limites da data de nascimento: entre a idade de reforma e a idade mínima */
+  (function () {
+    var h = new Date();
+    var max = new Date(h.getFullYear() - IDADE_MINIMA, h.getMonth(), h.getDate());
+    var min = new Date(h.getFullYear() - P.IDADE_REFORMA, h.getMonth(), h.getDate() + 1);
+    function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    inpNasc.max = iso(max);
+    inpNasc.min = iso(min);
+  })();
+
+  /* ================= Cálculo e apresentação ================= */
+  function limparResultados() {
+    ['r-colab', 'r-empresa', 'r-vol', 'r-mensal', 'r-anual'].forEach(function (id) { $(id).textContent = '0,00 Kz'; });
+    ['p-pensao', 'p-acumulado', 'p-contrib', 'p-rend'].forEach(function (id) { $(id).textContent = '0,00'; });
+  }
+
+  function calcular() {
+    var hoje = lerData(hojeISO());
+    var nasc = lerData(inpNasc.value);
+    var salario = parseKz(inpSalario);
+    var voluntaria = parseKz(inpVol);
+
+    var erro = '';
+    var idade = nasc ? idadeCompleta(nasc, hoje) : null;
+    if (nasc && nasc > hoje) erro = 'A data de nascimento não pode ser no futuro.';
+    else if (idade !== null && idade >= P.IDADE_REFORMA) erro = 'Já atingiu a idade de reforma (' + P.IDADE_REFORMA + ' anos). Não há contribuições futuras a simular.';
+    else if (idade !== null && idade < IDADE_MINIMA) erro = 'A idade mínima para a simulação é de ' + IDADE_MINIMA + ' anos.';
+
+    inpNasc.classList.toggle('invalido', !!erro);
+    erroNasc.hidden = !erro;
+    erroNasc.textContent = erro;
+
+    $('r-idade').textContent = (idade !== null && !erro) ? idade + ' anos' : '-';
+    $('r-anos').textContent  = (idade !== null && !erro) ? (P.IDADE_REFORMA - idade) + ' anos' : '-';
+
+    if (!nasc || erro || !salario) {
+      ultimo = null;
+      limparResultados();
+      if (salario && !erro) {
+        var parcial = simular(salario, voluntaria, P.IDADE_REFORMA - 1);
+        $('r-colab').textContent   = formatAOA(parcial.colab) + ' Kz';
+        $('r-empresa').textContent = formatAOA(parcial.empresa) + ' Kz';
+        $('r-vol').textContent     = formatAOA(parcial.voluntaria) + ' Kz';
+        $('r-mensal').textContent  = formatAOA(parcial.mensal) + ' Kz';
+        $('r-anual').textContent   = formatAOA(parcial.anual) + ' Kz';
+      }
+      aviso.hidden = !!erro || (!!nasc && !!salario);
+      aviso.textContent = !nasc && !salario ? 'Indique a data de nascimento e o salário mensal para ver a simulação.'
+                        : !nasc ? 'Indique a data de nascimento para calcular o valor na reforma.'
+                        : 'Indique o salário mensal para ver a simulação.';
+      btnImprimir.disabled = true;
+      desenharGrafico(null);
+      preencherTabela(null);
+      return;
+    }
+
+    aviso.hidden = true;
+    btnImprimir.disabled = false;
+    var r = simular(salario, voluntaria, idade);
+    ultimo = r;
+
+    $('r-colab').textContent   = formatAOA(r.colab) + ' Kz';
+    $('r-empresa').textContent = formatAOA(r.empresa) + ' Kz';
+    $('r-vol').textContent     = formatAOA(r.voluntaria) + ' Kz';
+    $('r-mensal').textContent  = formatAOA(r.mensal) + ' Kz';
+    $('r-anual').textContent   = formatAOA(r.anual) + ' Kz';
+    $('p-pensao').textContent    = formatAOA(r.pensao);
+    $('p-acumulado').textContent = formatAOA(r.acumulado);
+    $('p-contrib').textContent   = formatAOA(r.contribuicoes);
+    $('p-rend').textContent      = formatAOA(r.rendimento);
+
+    desenharGrafico(r);
+    preencherTabela(r);
+  }
+
+  /* ================= Tabela anual ================= */
+  function preencherTabela(r) {
+    var corpo = $('tabela-anual');
+    if (!r) { corpo.innerHTML = '<tr><td colspan="6" style="text-align:center">Sem dados para apresentar.</td></tr>'; return; }
+    corpo.innerHTML = r.anos.map(function (a) {
+      return '<tr><td>' + a.ano + '</td><td>' + a.idade + '</td><td>' + formatInteiro(a.contribAno) +
+        '</td><td>' + formatInteiro(a.contribAcum) + '</td><td>' + formatInteiro(a.rendAcum) +
+        '</td><td>' + formatInteiro(a.saldo) + '</td></tr>';
+    }).join('');
+  }
+
+  var btnTabela = $('btn-tabela');
+  btnTabela.addEventListener('click', function () {
+    var wrap = $('tabela-anual-wrap');
+    wrap.hidden = !wrap.hidden;
+    btnTabela.setAttribute('aria-expanded', String(!wrap.hidden));
+    btnTabela.textContent = wrap.hidden ? 'Ver tabela anual' : 'Esconder tabela anual';
+  });
+
+  /* ================= Gráfico (barras empilhadas em SVG) ================= */
+  var areaGrafico = $('grafico'), tooltip = $('tooltip');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function el(nome, attrs, pai) {
+    var e = document.createElementNS(NS, nome);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (pai) pai.appendChild(e);
+    return e;
+  }
+
+  function escalaBonita(max) {
+    if (max <= 0) return { max: 1, passo: 1 };
+    var bruto = max / 4;
+    var mag = Math.pow(10, Math.floor(Math.log10(bruto)));
+    var norm = bruto / mag;
+    var passo = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+    return { max: Math.ceil(max / passo) * passo, passo: passo };
+  }
+
+  /* barra com topo arredondado (4px) e base recta no eixo */
+  function caminhoBarra(x, y, w, h, raio) {
+    if (h <= 0) return '';
+    var r = Math.min(raio, w / 2, h);
+    return 'M' + x + ',' + (y + h) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y +
+      'H' + (x + w - r) + 'Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + 'V' + (y + h) + 'Z';
+  }
+
+  function desenharGrafico(r) {
+    var antigo = areaGrafico.querySelector('svg, .vazio');
+    if (antigo) antigo.remove();
+    tooltip.classList.remove('visivel');
+
+    if (!r || !r.anos.length) {
+      var v = document.createElement('p');
+      v.className = 'vazio';
+      v.textContent = 'Preencha a data de nascimento e o salário para ver a evolução do fundo.';
+      areaGrafico.appendChild(v);
+      return;
+    }
+
+    var W = Math.max(areaGrafico.clientWidth, 300);
+    var H = W < 560 ? 240 : 300;
+    var m = { t: 24, r: 8, b: 28, l: 56 };
+    var iw = W - m.l - m.r, ih = H - m.t - m.b;
+    var esc = escalaBonita(r.acumulado);
+    var y = function (val) { return m.t + ih - (val / esc.max) * ih; };
+
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Evolução do saldo do fundo de ' + formatInteiro(r.anos[0].saldo) + ' Kz a ' + formatInteiro(r.acumulado) + ' Kz aos ' + P.IDADE_REFORMA + ' anos' });
+
+    /* grelha e eixo Y */
+    var grelha = el('g', { 'class': 'grelha' }, svg);
+    var eixo = el('g', { 'class': 'eixo' }, svg);
+    for (var t = 0; t <= esc.max + 1e-6; t += esc.passo) {
+      if (t > 0) el('line', { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t) }, grelha);
+      var lt = el('text', { x: m.l - 8, y: y(t) + 4, 'text-anchor': 'end' }, eixo);
+      lt.textContent = t === 0 ? '0' : formatCompacto(t);
+    }
+    el('line', { 'class': 'base', x1: m.l, x2: W - m.r, y1: y(0), y2: y(0) }, svg);
+
+    /* barras */
+    var n = r.anos.length;
+    var banda = iw / n;
+    var bw = Math.max(2, Math.min(28, banda * 0.66));
+    var hover = el('g', {}, svg);
+    var barras = el('g', {}, svg);
+    var passoRotulo = Math.ceil(n / Math.floor(iw / 34));
+
+    r.anos.forEach(function (a, i) {
+      var cx = m.l + banda * i + banda / 2;
+      var x = cx - bw / 2;
+      var hC = y(0) - y(a.contribAcum);
+      var hT = y(0) - y(a.saldo);
+      var hR = hT - hC;
+      var gap = hR > 3 ? 2 : 0;
+      /* contribuições em baixo (base recta), rendimento em cima com topo arredondado */
+      if (hR > 0) {
+        el('path', { d: caminhoBarra(x, y(a.saldo), bw, Math.max(0, hR - gap), 4), fill: 'var(--serie-rend)' }, barras);
+        el('rect', { x: x, y: y(a.contribAcum), width: bw, height: Math.max(0, hC), fill: 'var(--serie-contrib)' }, barras);
+      } else {
+        el('path', { d: caminhoBarra(x, y(a.contribAcum), bw, hC, 4), fill: 'var(--serie-contrib)' }, barras);
+      }
+
+      /* rótulos do eixo X (idades) */
+      if (i % passoRotulo === 0 || i === n - 1) {
+        var lx = el('text', { x: cx, y: H - m.b + 17, 'text-anchor': 'middle' }, eixo);
+        lx.textContent = a.idade;
+      }
+
+      /* zona de hover maior do que a barra */
+      var zona = el('rect', { 'class': 'coluna-hover', x: m.l + banda * i, y: m.t, width: banda, height: ih }, hover);
+      zona.addEventListener('mouseenter', function () { mostrarTooltip(a, cx, zona); });
+      zona.addEventListener('mousemove', function () { mostrarTooltip(a, cx, zona); });
+      zona.addEventListener('mouseleave', function () { zona.classList.remove('activa'); tooltip.classList.remove('visivel'); });
+      zona.addEventListener('touchstart', function () { mostrarTooltip(a, cx, zona); }, { passive: true });
+    });
+
+    /* rótulo directo do valor final */
+    var ult = r.anos[n - 1];
+    var cxU = m.l + banda * (n - 1) + banda / 2;
+    var rotulo = el('text', { 'class': 'rotulo-final', x: Math.min(cxU, W - m.r), y: y(ult.saldo) - 8, 'text-anchor': 'end' }, svg);
+    rotulo.textContent = formatCompacto(ult.saldo) + ' Kz';
+
+    areaGrafico.insertBefore(svg, tooltip);
+
+    var zonaActiva = null;
+    function mostrarTooltip(a, cx, zona) {
+      if (zonaActiva && zonaActiva !== zona) zonaActiva.classList.remove('activa');
+      zonaActiva = zona;
+      zona.classList.add('activa');
+      tooltip.innerHTML =
+        '<div class="tt-titulo">Ano ' + a.ano + ' · ' + a.idade + ' anos</div>' +
+        '<div class="tt-linha"><span><span class="ponto" style="background:var(--serie-contrib)"></span>Contribuições</span><b>' + formatInteiro(a.contribAcum) + ' Kz</b></div>' +
+        '<div class="tt-linha"><span><span class="ponto" style="background:var(--serie-rend)"></span>Rendimento</span><b>' + formatInteiro(a.rendAcum) + ' Kz</b></div>' +
+        '<div class="tt-linha tt-total"><span>Saldo</span><b>' + formatInteiro(a.saldo) + ' Kz</b></div>';
+      tooltip.classList.add('visivel');
+      var escalaPx = areaGrafico.clientWidth / W;
+      var px = cx * escalaPx;
+      var tw = tooltip.offsetWidth;
+      var left = px + 14;
+      if (left + tw > areaGrafico.clientWidth) left = px - tw - 14;
+      tooltip.style.left = Math.max(0, left) + 'px';
+      tooltip.style.top = (m.t * escalaPx) + 'px';
+    }
+  }
+
+  /* em ecrãs tácteis não há mouseleave: tocar fora do gráfico esconde o tooltip */
+  document.addEventListener('touchstart', function (e) {
+    if (!areaGrafico.contains(e.target)) {
+      tooltip.classList.remove('visivel');
+      var activa = areaGrafico.querySelector('.coluna-hover.activa');
+      if (activa) activa.classList.remove('activa');
+    }
+  }, { passive: true });
+
+  var temporizador;
+  window.addEventListener('resize', function () {
+    clearTimeout(temporizador);
+    temporizador = setTimeout(function () { desenharGrafico(ultimo); }, 120);
+  });
+
+  /* ================= Guardar em PDF (impressão do browser) ================= */
+  btnImprimir.addEventListener('click', function () {
+    var nome = inpNome.value.trim();
+    var d = new Date();
+    $('imp-meta').textContent = (nome ? nome + ' · ' : '') + 'Simulado em ' +
+      String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+    window.print();
+  });
+  window.addEventListener('beforeprint', function () { desenharGrafico(ultimo); });
+  window.addEventListener('afterprint', function () { desenharGrafico(ultimo); });
+
+  /* ================= Eventos ================= */
+  inpSalario.addEventListener('input', function (e) { mascaraKz(e); calcular(); });
+  inpVol.addEventListener('input', function (e) { mascaraKz(e); calcular(); });
+  inpNasc.addEventListener('input', calcular);
+  inpNasc.addEventListener('change', calcular);
+
+  $('ano').textContent = String(new Date().getFullYear());
+  calcular();
+})();
+</script>
+
+</body>
+</html>

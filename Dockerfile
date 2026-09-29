@@ -1,0 +1,24 @@
+# ================= Build =================
+FROM node:22-alpine AS build
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install --no-audit --no-fund
+
+COPY . .
+RUN npm run build
+
+# ================= Runtime (standalone, imagem minima) =================
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=6511
+
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next/static ./.next/static
+
+USER node
+EXPOSE 6511
+CMD ["node", "server.js"]

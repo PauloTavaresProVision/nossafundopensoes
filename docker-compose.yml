@@ -4,4 +4,4 @@ services:
     container_name: nossa-simulador-pensoes
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6511:6511"
+      - "6511:6511"

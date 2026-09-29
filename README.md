@@ -43,8 +43,8 @@ se a voluntária cresce com o salário (hoje cresce, como no Excel).
 Primeira instalação no servidor:
 
 ```bash
-git clone https://github.com/PauloTavaresProVision/Nossa-Sim-Pensoes.git
-cd Nossa-Sim-Pensoes
+git clone https://github.com/PauloTavaresProVision/nossafundopensoes.git
+cd nossafundopensoes
 docker compose up -d --build
 curl -I http://localhost:6511/
 ```
@@ -52,7 +52,7 @@ curl -I http://localhost:6511/
 Actualizar depois de novos commits:
 
 ```bash
-cd Nossa-Sim-Pensoes
+cd nossafundopensoes
 git pull
 docker compose up -d --build
 ```

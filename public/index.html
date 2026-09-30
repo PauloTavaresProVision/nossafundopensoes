@@ -491,8 +491,17 @@
     .cabecalho-impressao div { text-align: right; font-size: 11px; color: var(--texto-suave); }
     .cabecalho-impressao strong { display: block; color: var(--navy-escuro); font-size: 13px; }
     main { display: block; max-width: 100%; margin: 0; padding: 0; }
-    .card { border: 1px solid #ccc; margin-bottom: .8rem; page-break-inside: avoid; }
-    .premio-principal, .ponto, svg rect { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    /* o cartão do resultado é mais alto do que uma folha: pode partir-se entre páginas
+       (se não pudesse, o browser empurrava-o para a página 2 e a 1 ficava em branco) */
+    .card { border: 1px solid #ccc; margin-bottom: .8rem; padding: 1rem 1.2rem; break-inside: auto; }
+    .cabecalho-impressao { break-after: avoid; }
+    .section-header { margin-bottom: .7rem; break-after: avoid; }
+    .subtitulo { margin: .8rem 0 .4rem; break-after: avoid; }
+    .tabela-resumo td, .tabela-premios td, .tabela-pressupostos td { padding: .3rem 0; }
+    .tabela-resumo tr, .tabela-premios tr, .tabela-pressupostos tr, .tabela-anual tr,
+    .premio-principal, .alerta-minimo, .opcao, .grafico-card { break-inside: avoid; }
+    .premio-principal { margin: .7rem 0; }
+    .premio-principal, .alerta-minimo, .ponto, svg rect, svg path { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .tabela-anual-wrap { overflow: visible; }
     .tabela-anual { min-width: 0; }
   }
@@ -1448,14 +1457,14 @@
   });
 
   /* ================= Guardar em PDF (impressão do browser) ================= */
-  btnImprimir.addEventListener('click', function () {
+  /* nome e data no cabeçalho do PDF: também com Ctrl+P, não só pelo botão */
+  function prepararImpressao() {
     var nome = inpNome.value.trim();
-    var d = new Date();
-    $('imp-meta').textContent = (nome ? nome + ' · ' : '') + 'Simulado em ' +
-      String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
-    window.print();
-  });
-  window.addEventListener('beforeprint', function () { desenharGrafico(ultimo); });
+    $('imp-meta').textContent = (nome ? nome + ' · ' : '') + 'Simulado em ' + formatData(new Date());
+    desenharGrafico(ultimo);
+  }
+  btnImprimir.addEventListener('click', function () { window.print(); });
+  window.addEventListener('beforeprint', prepararImpressao);
   window.addEventListener('afterprint', function () { desenharGrafico(ultimo); });
 
   /* ================= Eventos ================= */

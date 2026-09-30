@@ -1138,6 +1138,8 @@
         $('r-anual').textContent   = formatAOA(parcial.anual) + ' Kz';
       }
       var mensagem = erroPressupostos ? 'Verifique os pressupostos assinalados a vermelho.'
+                   : PARTICULAR && contribPart && contribPart < CONTRIB_PARTICULAR_MIN
+                     ? 'A contribuição mínima é de ' + formatInteiro(CONTRIB_PARTICULAR_MIN) + ' Kz por mês. Aumente o valor para ver a simulação.'
                    : erroDados ? 'Verifique os campos assinalados a vermelho.'
                    : erro ? ''
                    : 'Indique ' + faltaTexto + ' para ver a simulação.';

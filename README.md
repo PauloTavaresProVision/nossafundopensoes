@@ -65,8 +65,20 @@ Confirmado (30/09/2026): contribuições desde a data da simulação, pensão m�
 por agora), particulares com mínimo de 10 000 Kz/mês e aumento à escolha do cliente.
 
 Pendente: limites da % do colaborador (assumido 3% a 30%), se os particulares usam os
-mesmos pressupostos (12%, reforma aos 60, factor 11), recolha de contactos (obrigatória?
-para onde?) e se a voluntária cresce com o salário (hoje cresce, como no Excel).
+mesmos pressupostos (12%, reforma aos 60, factor 11) e se a voluntária cresce com o
+salário (hoje cresce, como no Excel).
+
+## Pedido de contacto (botão "Quero Ser Contactado")
+
+Nome, telefone e email são obrigatórios para ver a simulação. O botão abre um pop-up de
+confirmação e envia, pelo servidor (`POST /api/contactar`), um email para
+**fundos.pensoes@nossaseguros.ao** com os contactos e o resumo da simulação (Reply-To = email
+do cliente). Usa o mesmo SMTP do simulador de Empregados Domésticos.
+
+- O servidor revalida nome, telefone (9 dígitos começado por 9, aceita 244) e email.
+- Os valores da simulação vêm do browser: só são aceites números, formatados no servidor.
+- Limite de 5 pedidos enviados por IP a cada 10 minutos (o proxy tem de passar `X-Forwarded-For`).
+- Sem `SMTP_HOST`, o botão responde "Serviço temporariamente indisponível".
 
 ## Deploy com Docker
 
@@ -75,6 +87,8 @@ Primeira instalação no servidor:
 ```bash
 git clone https://github.com/PauloTavaresProVision/nossafundopensoes.git
 cd nossafundopensoes
+cp .env.example .env
+nano .env            # SMTP_* iguais aos do simulador de Empregados Domésticos
 docker compose up -d --build
 curl -I http://localhost:6511/
 ```
@@ -98,7 +112,7 @@ location / {
 }
 ```
 
-Não há variáveis de ambiente nem volumes: a página é estática e não guarda dados.
+As credenciais SMTP ficam só no `.env` do servidor (nunca no GitHub). Não há volumes: nada é guardado no disco.
 
 ## Desenvolvimento local
 

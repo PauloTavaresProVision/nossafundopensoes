@@ -5,3 +5,15 @@ services:
     restart: unless-stopped
     ports:
       - "6511:6511"
+    dns:
+      # DNS públicos, como no simulador de Empregados Domésticos
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      # definir em .env (copiar de .env.example); nunca commitar as credenciais
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
+      - EMAIL_FUNDOS_PENSOES=${EMAIL_FUNDOS_PENSOES:-fundos.pensoes@nossaseguros.ao}

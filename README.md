@@ -5,27 +5,33 @@ com a mesma identidade visual do simulador de Empregados Domésticos.
 
 ## Versões
 
-- `/` — versão pública (fórum/site), com os pressupostos fixos.
-- `/comercial` — versão para a equipa comercial, com os pressupostos editáveis cliente a
-  cliente (contribuições, rentabilidade, crescimento salarial, salários/ano, idade de
-  reforma, factor de conversão). Não é indexada pelos motores de busca
-  (`X-Robots-Tag: noindex`), mas não tem senha: quem tiver o link acede.
+Todas as versões são a mesma página (`public/index.html`); a versão é escolhida pelo caminho.
 
-É a mesma página (`public/index.html`); o modo comercial é detectado pelo caminho.
+| Caminho | Produto | Pressupostos |
+|---|---|---|
+| `/` | Fundo de Pensões Complementar (empresa) | fixos |
+| `/comercial` | Fundo de Pensões Complementar (empresa) | editáveis cliente a cliente |
+| `/particulares` | Particulares (contribuição fixa, mínimo 10 000 Kz/mês) | fixos |
+| `/particulares/comercial` | Particulares | editáveis cliente a cliente |
+
+As versões comerciais não são indexadas pelos motores de busca (`X-Robots-Tag: noindex`),
+mas não têm senha: quem tiver o link acede.
 
 ## Modelo de cálculo (base: Excel "Fundo de Pensões Complementar - Simulador", 29/09/2026)
 
-Pressupostos (constante `P` no `<script>` de `public/index.html`):
+Pressupostos (constante `PADRAO` no `<script>` de `public/index.html`):
 
 | Pressuposto | Valor |
 |---|---|
-| Contribuição do colaborador | 3% do salário |
+| Contribuição do colaborador | escolhida pelo participante, 3% a 30% (por omissão 3%) |
 | Contribuição da empresa | 5% do salário |
 | Taxa de rentabilidade | 12% / ano |
 | Taxa de crescimento salarial | 5% / ano |
 | Salários por ano | 12 |
 | Idade de reforma | 60 |
 | Factor de conversão | 11 (pensão = VA / 11 / 12) |
+| Crescimento anual da pensão | 0% (campo preparado; só aparece na versão pública se for diferente de 0) |
+| Pensão mínima legal | 100 000 Kz/mês (alerta abaixo deste valor) |
 
 Cálculo:
 
@@ -36,6 +42,13 @@ Cálculo:
 - Pensão mensal = valor acumulado / 11 / 12.
 - As contribuições começam na data da simulação; a tabela anual mostra o período de cada ano.
 - Opções na reforma: 100% em pensão, ou 50% em capital + pensão sobre os outros 50%.
+- Crescimento da pensão `g`: o factor F é o n.º de anos de pensão; pensão inicial anual =
+  VA / [((1+g)^F − 1) / g] (com g = 0 fica VA / F).
+- Pensão abaixo de 100 000 Kz: alerta com a contribuição necessária (a pensão é proporcional
+  à contribuição mensal): % do colaborador (se ≤ 30%), contribuição voluntária adicional,
+  ou, nos particulares, a nova contribuição mensal.
+- Particulares: contribuição mensal fixa (mínimo 10 000 Kz), com aumento anual opcional
+  escolhido pelo cliente (0% a 20%); sem contribuição da empresa nem crescimento salarial.
 
 ### Diferenças face ao Excel original
 
@@ -47,11 +60,13 @@ Confirmado pela NOSSA (Albertina Napita, 29/09/2026): empresa 5%, pressupostos
 financeiros fixos, factor de conversão 11 igual para todos, fórmula corrigida
 aprovada, simulador para uso interno e externo (site público).
 
-Pendente (feedback de 30/09/2026): valor da pensão mínima legal e alerta, % do
-colaborador escolhida pelo participante, recolha de contactos (obrigatória? para onde?),
-data de adesão (futura ou participante actual com saldo), taxa de crescimento da pensão,
-versão para particulares (valor fixo, mínimo 10 000 Kz) e se a voluntária cresce com o
-salário (hoje cresce, como no Excel).
+Confirmado (30/09/2026): contribuições desde a data da simulação, pensão mínima legal de
+100 000 Kz, % do colaborador variável, crescimento da pensão como campo aberto (sem taxa
+por agora), particulares com mínimo de 10 000 Kz/mês e aumento à escolha do cliente.
+
+Pendente: limites da % do colaborador (assumido 3% a 30%), se os particulares usam os
+mesmos pressupostos (12%, reforma aos 60, factor 11), recolha de contactos (obrigatória?
+para onde?) e se a voluntária cresce com o salário (hoje cresce, como no Excel).
 
 ## Deploy com Docker
 

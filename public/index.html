@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Simulador do Fundo de Pensões Complementar da NOSSA Seguros">
 <title>Simulador - Fundo de Pensões Complementar | NOSSA Seguros</title>
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
-<link rel="icon" type="image/x-icon" href="favicon.ico?v=2">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=2">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
 <style>
   :root {
     --verde: #7FBE3D;
@@ -340,6 +340,14 @@
 
   .impressao-pressupostos { margin-top: 1rem; }
 
+  /* alerta de pensão abaixo da pensão mínima legal */
+  .alerta-minimo {
+    background: #FFF8E6; border: 1px solid #F0D48A; border-left: 4px solid #D9A21B;
+    border-radius: 4px; padding: .75rem .9rem; margin: -.3rem 0 1rem;
+    font-size: .82rem; color: #5C4300; line-height: 1.55;
+  }
+  .alerta-minimo strong { display: block; color: #4A3600; margin-bottom: .15rem; }
+
   /* ================= Telemóvel ================= */
   @media (max-width: 560px) {
     /* 16px evita o zoom automático do iOS ao tocar nos campos */
@@ -425,9 +433,9 @@
 
 <header class="site">
   <div class="header-inner">
-    <img class="logo" src="logo-nossa.png" alt="NOSSA Seguros">
+    <img class="logo" src="/logo-nossa.png" alt="NOSSA Seguros">
     <div class="header-info">
-      <strong>Fundo de Pensões Complementar</strong>
+      <strong id="header-produto">Fundo de Pensões Complementar</strong>
       Vida e Fundo de Pensões
     </div>
   </div>
@@ -437,17 +445,17 @@
   <div class="faixa-inner">
     <div>
       <div class="categoria">Vida e Fundo de Pensões<span class="selo-comercial" id="selo-comercial" hidden>Versão comercial</span></div>
-      <h1>Simulador - Fundo de Pensões Complementar</h1>
-      <p>Indique a sua data de nascimento e o seu salário mensal e veja quanto pode acumular até à idade de reforma e o valor estimado da sua pensão mensal.</p>
+      <h1 id="titulo">Simulador - Fundo de Pensões Complementar</h1>
+      <p id="subtitulo-faixa">Indique a sua data de nascimento e o seu salário mensal e veja quanto pode acumular até à idade de reforma e o valor estimado da sua pensão mensal.</p>
     </div>
-    <img class="faixa-logo" src="logo-nossa-pensoes-negativo.svg" alt="NOSSA Pensões">
+    <img class="faixa-logo" src="/logo-nossa-pensoes-negativo.svg" alt="NOSSA Pensões">
   </div>
 </section>
 
 <main>
   <div class="so-impressao cabecalho-impressao">
-    <img src="logo-nossa.png" alt="NOSSA Seguros">
-    <div><strong>Simulação - Fundo de Pensões Complementar</strong><span id="imp-meta"></span></div>
+    <img src="/logo-nossa.png" alt="NOSSA Seguros">
+    <div><strong id="imp-titulo">Simulação - Fundo de Pensões Complementar</strong><span id="imp-meta"></span></div>
   </div>
 
   <!-- ===================== Formulário ===================== -->
@@ -465,16 +473,35 @@
         <input type="date" id="nascimento">
         <p class="erro-campo" id="erro-nascimento" hidden></p>
       </div>
-      <div class="campo">
+      <div class="campo so-empresa">
         <label for="salario">Salário mensal (Kz) <span class="obrigatorio">*</span></label>
         <input type="text" inputmode="numeric" id="salario" placeholder="Ex.: 500 000">
       </div>
+      <div class="campo so-particular">
+        <label for="contrib-particular">Contribuição mensal (Kz) <span class="obrigatorio">*</span></label>
+        <input type="text" inputmode="numeric" id="contrib-particular" placeholder="Mínimo 10 000">
+        <p class="erro-campo" id="erro-particular" hidden></p>
+      </div>
     </div>
 
-    <div class="campo">
-      <label for="voluntaria">Contribuição adicional voluntária mensal (Kz) <span class="opc">(opcional)</span></label>
-      <input type="text" inputmode="numeric" id="voluntaria" placeholder="0">
-      <p class="ajuda">Valor que decide entregar todos os meses, além da contribuição obrigatória.</p>
+    <div class="grid-2 so-empresa">
+      <div class="campo">
+        <label for="contrib-colab">A sua contribuição (% do salário) <span class="obrigatorio">*</span></label>
+        <input type="text" inputmode="decimal" id="contrib-colab">
+        <p class="erro-campo" id="erro-colab" hidden></p>
+      </div>
+      <div class="campo">
+        <label for="voluntaria">Contribuição voluntária mensal (Kz) <span class="opc">(opcional)</span></label>
+        <input type="text" inputmode="numeric" id="voluntaria" placeholder="0">
+      </div>
+    </div>
+    <p class="ajuda so-empresa" style="margin:-.5rem 0 1rem">A contribuição voluntária é um valor que decide entregar todos os meses, além da sua contribuição.</p>
+
+    <div class="campo so-particular">
+      <label for="cresc-particular">Aumento anual da contribuição (%) <span class="opc">(opcional)</span></label>
+      <input type="text" inputmode="decimal" id="cresc-particular" placeholder="0">
+      <p class="ajuda">Se quiser, a sua contribuição pode aumentar todos os anos nesta percentagem. Deixe 0 para manter sempre o mesmo valor.</p>
+      <p class="erro-campo" id="erro-cresc" hidden></p>
     </div>
     <p class="legenda-obrigatorio"><span class="obrigatorio">*</span> Campo de preenchimento obrigatório</p>
 
@@ -483,7 +510,7 @@
     <button type="button" class="btn-repor" id="btn-repor" hidden>Repor pressupostos por omissão</button>
 
     <div class="nota">
-      <strong>Nota:</strong> as contribuições começam na data da simulação, são calculadas sobre o salário mensal e crescem todos os anos à taxa de crescimento salarial. O saldo do fundo é capitalizado à taxa de rentabilidade até à idade de reforma. <span id="nota-pressupostos">Os pressupostos são meramente indicativos.</span>
+      <strong>Nota:</strong> <span id="nota-texto">as contribuições começam na data da simulação, são calculadas sobre o salário mensal e crescem todos os anos à taxa de crescimento salarial.</span> O saldo do fundo é capitalizado à taxa de rentabilidade até à idade de reforma. <span id="nota-pressupostos">Os pressupostos são meramente indicativos.</span>
     </div>
   </section>
 
@@ -495,9 +522,9 @@
       <tr><td>Idade actual</td><td id="r-idade">-</td></tr>
       <tr><td>Início das contribuições</td><td id="r-inicio">-</td></tr>
       <tr><td>Anos de contribuição até à reforma</td><td id="r-anos">-</td></tr>
-      <tr><td id="r-colab-rotulo">Contribuição do colaborador (mensal)</td><td id="r-colab">0,00 Kz</td></tr>
-      <tr><td id="r-empresa-rotulo">Contribuição da empresa (mensal)</td><td id="r-empresa">0,00 Kz</td></tr>
-      <tr><td>Contribuição voluntária (mensal)</td><td id="r-vol">0,00 Kz</td></tr>
+      <tr class="so-empresa"><td id="r-colab-rotulo">Contribuição do colaborador (mensal)</td><td id="r-colab">0,00 Kz</td></tr>
+      <tr class="so-empresa"><td id="r-empresa-rotulo">Contribuição da empresa (mensal)</td><td id="r-empresa">0,00 Kz</td></tr>
+      <tr class="so-empresa"><td>Contribuição voluntária (mensal)</td><td id="r-vol">0,00 Kz</td></tr>
       <tr class="total"><td>Total da contribuição mensal</td><td id="r-mensal">0,00 Kz</td></tr>
       <tr><td>Total da contribuição anual (1.º ano)</td><td id="r-anual">0,00 Kz</td></tr>
     </table>
@@ -505,6 +532,11 @@
     <div class="premio-principal">
       <div class="rotulo">Pensão Mensal Estimada<small id="p-reforma-rotulo">aos 60 anos</small></div>
       <div class="valor"><span id="p-pensao">0,00</span> <small>Kz</small></div>
+    </div>
+
+    <div class="alerta-minimo" id="alerta-minimo" role="status" hidden>
+      <strong>Pensão abaixo da pensão mínima legal</strong>
+      <span id="alerta-texto"></span>
     </div>
 
     <table class="tabela-premios">
@@ -574,7 +606,7 @@
   <div class="footer-topo">
     <div class="footer-topo-inner">
       <div class="footer-col">
-        <img class="logo-rodape" src="logo-nossa.png" alt="NOSSA Seguros">
+        <img class="logo-rodape" src="/logo-nossa.png" alt="NOSSA Seguros">
         Nova Sociedade de Seguros de Angola, S.A.
       </div>
       <div class="footer-col">
@@ -603,32 +635,51 @@
 
   /* ================= Pressupostos (Excel "Fundo de Pensões Complementar - Simulador") ================= */
   var PADRAO = {
-    CONTRIB_COLABORADOR: 0.03,
     CONTRIB_EMPRESA:     0.05,
     RENTABILIDADE:       0.12,
     CRESCIMENTO_SALARIAL: 0.05,
     SALARIOS_ANO:        12,
     IDADE_REFORMA:       60,
     FACTOR_CONVERSAO:    11,
+    CRESCIMENTO_PENSAO:  0,      /* ainda sem taxa definida pela NOSSA; campo preparado */
     PENSOES_ANO:         12
   };
   var P = Object.assign({}, PADRAO);
   var IDADE_MINIMA = 18;
   var PARTE_CAPITAL_MAX = 0.5;   /* até 50% do acumulado pode ser recebido de uma só vez */
+  var PENSAO_MINIMA = 100000;    /* pensão mínima legal (Kz/mês) */
 
-  /* Versão comercial (/comercial): pressupostos editáveis cliente a cliente.
-     A versão pública (/) mantém os pressupostos fixos. */
-  var COMERCIAL = /\/comercial\/?$/.test(location.pathname);
+  /* contribuição do colaborador: escolhida pelo participante */
+  var CONTRIB_COLAB_PADRAO = 0.03, CONTRIB_COLAB_MIN = 0.03, CONTRIB_COLAB_MAX = 0.30;
+  /* particulares: valor fixo mensal, com aumento anual opcional à escolha do cliente */
+  var CONTRIB_PARTICULAR_MIN = 10000, CRESC_PARTICULAR_MAX = 0.20;
+
+  /* Versões:
+     /                        empresa (Fundo de Pensões Complementar), pressupostos fixos
+     /comercial               empresa, pressupostos editáveis cliente a cliente
+     /particulares            particulares (contribuição fixa), pressupostos fixos
+     /particulares/comercial  particulares, pressupostos editáveis                     */
+  var CAMINHO = location.pathname.replace(/\/+$/, '');
+  var COMERCIAL = /\/comercial$/.test(CAMINHO);
+  var PARTICULAR = /\/particulares(\/comercial)?$/.test(CAMINHO);
 
   var PRESSUPOSTOS = [
-    { k: 'CONTRIB_COLABORADOR',  rotulo: 'Contribuição do colaborador',       tipo: 'pct', doSalario: true, min: 0,  max: 100 },
-    { k: 'CONTRIB_EMPRESA',      rotulo: 'Contribuição da empresa',           tipo: 'pct', doSalario: true, min: 0,  max: 100 },
-    { k: 'RENTABILIDADE',        rotulo: 'Taxa de rentabilidade anual',       tipo: 'pct', min: 0,  max: 50 },
-    { k: 'CRESCIMENTO_SALARIAL', rotulo: 'Taxa de crescimento salarial anual', tipo: 'pct', min: 0,  max: 50 },
-    { k: 'SALARIOS_ANO',         rotulo: 'N.º de salários por ano',           tipo: 'num', min: 12, max: 14 },
-    { k: 'IDADE_REFORMA',        rotulo: 'Idade de reforma',                  tipo: 'int', min: 50, max: 75 },
-    { k: 'FACTOR_CONVERSAO',     rotulo: 'Factor de conversão em pensão',     tipo: 'num', min: 1,  max: 40 }
+    { k: 'CONTRIB_EMPRESA',      rotulo: 'Contribuição da empresa',            tipo: 'pct', doSalario: true, empresa: true, min: 0,  max: 100 },
+    { k: 'RENTABILIDADE',        rotulo: 'Taxa de rentabilidade anual',        tipo: 'pct', min: 0,  max: 50 },
+    { k: 'CRESCIMENTO_SALARIAL', rotulo: 'Taxa de crescimento salarial anual', tipo: 'pct', empresa: true, min: 0,  max: 50 },
+    { k: 'SALARIOS_ANO',         rotulo: 'N.º de salários por ano',            tipo: 'num', empresa: true, min: 12, max: 14 },
+    { k: 'IDADE_REFORMA',        rotulo: 'Idade de reforma',                   tipo: 'int', min: 50, max: 75 },
+    { k: 'FACTOR_CONVERSAO',     rotulo: 'Factor de conversão em pensão',      tipo: 'num', min: 1,  max: 40 },
+    /* na versão pública só aparece quando tiver um valor diferente de 0 */
+    { k: 'CRESCIMENTO_PENSAO',   rotulo: 'Taxa de crescimento anual da pensão', tipo: 'pct', ocultarSeZero: true, min: 0, max: 20 }
   ];
+  function pressupostosVisiveis() {
+    return PRESSUPOSTOS.filter(function (c) {
+      if (PARTICULAR && c.empresa) return false;
+      if (c.ocultarSeZero && !COMERCIAL && !P[c.k]) return false;
+      return true;
+    });
+  }
   var invalidos = {};
 
   /* ================= Formatação ================= */
@@ -657,6 +708,15 @@
     var d = e.target.value.replace(/\D/g, '').slice(0, 12);
     e.target.value = d ? formatInteiro(Number(d)) : '';
   }
+  /* "3,5" -> 0.035; vazio -> valorVazio; inválido -> null */
+  function lerPct(texto, min, max, valorVazio) {
+    var t = texto.replace(/\s/g, '').replace('%', '').replace(',', '.');
+    if (t === '') return valorVazio;
+    var v = parseFloat(t);
+    if (isNaN(v) || !/^\d*\.?\d*$/.test(t)) return null;
+    v = v / 100;
+    return (v < min - 1e-9 || v > max + 1e-9) ? null : v;
+  }
 
   /* ================= Datas ================= */
   function hojeISO() {
@@ -678,31 +738,36 @@
   }
 
   /* ================= Modelo =================
-     Contribuição anual do ano k (k = 0..n-1): CA × (1 + tcs)^k, entregue no início do ano.
+     Contribuição anual do ano k (k = 0..n-1): CA × (1 + c)^k, entregue no início do ano,
+     com c = crescimento salarial (empresa) ou aumento escolhido pelo cliente (particulares).
      Saldo no fim do ano: (saldo anterior + contribuição do ano) × (1 + tr).
-     Pensão mensal = valor acumulado / factor de conversão / pensões por ano.        */
-  function simular(salario, voluntaria, idade, inicio) {
-    var colab   = salario * P.CONTRIB_COLABORADOR;
-    var empresa = salario * P.CONTRIB_EMPRESA;
-    var mensal  = colab + empresa + voluntaria;
-    var anual   = mensal * P.SALARIOS_ANO;
-    var n = P.IDADE_REFORMA - idade;
+     Pensão: o factor de conversão (F) é o n.º de anos de pensão. Com crescimento da pensão g,
+     a pensão inicial anual é VA / [((1+g)^F − 1) / g]; com g = 0 fica VA / F.              */
+  function divisorPensao() {
+    var g = P.CRESCIMENTO_PENSAO, F = P.FACTOR_CONVERSAO;
+    return g ? (Math.pow(1 + g, F) - 1) / g : F;
+  }
+
+  function simular(d) {
+    var mensal = d.colab + d.empresa + d.voluntaria;
+    var anual  = mensal * (PARTICULAR ? 12 : P.SALARIOS_ANO);
+    var n = P.IDADE_REFORMA - d.idade;
 
     var anos = [], saldo = 0, contribAcum = 0;
     for (var k = 0; k < n; k++) {
-      var contribAno = anual * Math.pow(1 + P.CRESCIMENTO_SALARIAL, k);
+      var contribAno = anual * Math.pow(1 + d.crescimento, k);
       contribAcum += contribAno;
       saldo = (saldo + contribAno) * (1 + P.RENTABILIDADE);
       anos.push({
-        ano: k + 1, idade: idade + k + 1,
-        de: somarAnos(inicio, k), ate: vespera(somarAnos(inicio, k + 1)),
+        ano: k + 1, idade: d.idade + k + 1,
+        de: somarAnos(d.inicio, k), ate: vespera(somarAnos(d.inicio, k + 1)),
         contribAno: contribAno, contribAcum: contribAcum, rendAcum: saldo - contribAcum, saldo: saldo
       });
     }
-    var pensao = saldo / P.FACTOR_CONVERSAO / P.PENSOES_ANO;
+    var pensao = saldo / divisorPensao() / P.PENSOES_ANO;
     return {
-      colab: colab, empresa: empresa, voluntaria: voluntaria, mensal: mensal, anual: anual,
-      n: n, idade: idade, inicio: inicio,
+      colab: d.colab, empresa: d.empresa, voluntaria: d.voluntaria, mensal: mensal, anual: anual,
+      n: n, idade: d.idade, inicio: d.inicio,
       acumulado: saldo, contribuicoes: contribAcum, rendimento: saldo - contribAcum,
       pensao: pensao,
       capitalMisto: saldo * PARTE_CAPITAL_MAX,
@@ -714,8 +779,12 @@
   /* ================= Elementos ================= */
   var $ = function (id) { return document.getElementById(id); };
   var inpNome = $('nome'), inpNasc = $('nascimento'), inpSalario = $('salario'), inpVol = $('voluntaria');
+  var inpColab = $('contrib-colab'), inpPart = $('contrib-particular'), inpCrescPart = $('cresc-particular');
   var erroNasc = $('erro-nascimento'), aviso = $('aviso-resultado'), btnImprimir = $('btn-imprimir');
   var ultimo = null;
+
+  inpColab.value = formatNum(CONTRIB_COLAB_PADRAO * 100);
+  inpColab.placeholder = formatNum(CONTRIB_COLAB_MIN * 100);
 
   /* ================= Pressupostos: fixos (público) ou editáveis (comercial) ================= */
   function textoPressuposto(c, v) {
@@ -731,12 +800,14 @@
     return c.tipo === 'pct' ? v / 100 : v;
   }
 
-  function preencherTabelaTexto(tabela) {
+  function preencherTabelaTexto(tabela, extras) {
     tabela.innerHTML = '';
-    PRESSUPOSTOS.forEach(function (c) {
+    (extras || []).concat(pressupostosVisiveis().map(function (c) {
+      return [c.rotulo, textoPressuposto(c, P[c.k])];
+    })).forEach(function (linha) {
       var tr = tabela.insertRow();
-      tr.insertCell().textContent = c.rotulo;
-      tr.insertCell().textContent = textoPressuposto(c, P[c.k]);
+      tr.insertCell().textContent = linha[0];
+      tr.insertCell().textContent = linha[1];
     });
   }
 
@@ -745,7 +816,7 @@
     if (!COMERCIAL) { preencherTabelaTexto(tabela); return; }
 
     tabela.innerHTML = '';
-    PRESSUPOSTOS.forEach(function (c) {
+    pressupostosVisiveis().forEach(function (c) {
       var id = 'ps-' + c.k.toLowerCase();
       var tr = tabela.insertRow();
       var rot = document.createElement('label');
@@ -780,9 +851,9 @@
   }
 
   function actualizarRotulos() {
-    $('r-colab-rotulo').textContent   = 'Contribuição do colaborador (' + formatPct(P.CONTRIB_COLABORADOR) + ')';
     $('r-empresa-rotulo').textContent = 'Contribuição da empresa (' + formatPct(P.CONTRIB_EMPRESA) + ')';
-    $('p-reforma-rotulo').textContent = 'aos ' + P.IDADE_REFORMA + ' anos';
+    $('p-reforma-rotulo').textContent = 'aos ' + P.IDADE_REFORMA + ' anos' +
+      (P.CRESCIMENTO_PENSAO ? ' · cresce ' + formatPct(P.CRESCIMENTO_PENSAO) + ' ao ano' : '');
 
     /* limites da data de nascimento: entre a idade de reforma e a idade mínima */
     var h = new Date();
@@ -793,8 +864,22 @@
     inpNasc.min = iso(min);
   }
 
+  /* ================= Versão: empresa / particulares, pública / comercial ================= */
+  document.querySelectorAll('.so-empresa').forEach(function (e) { e.hidden = PARTICULAR; });
+  document.querySelectorAll('.so-particular').forEach(function (e) { e.hidden = !PARTICULAR; });
+
+  var produto = PARTICULAR ? 'Fundo de Pensões - Particulares' : 'Fundo de Pensões Complementar';
+  document.title = 'Simulador' + (COMERCIAL ? ' Comercial' : '') + ' - ' + produto + ' | NOSSA Seguros';
+  $('header-produto').textContent = produto;
+  $('titulo').textContent = 'Simulador - ' + produto;
+  $('imp-titulo').textContent = 'Simulação - ' + produto;
+  if (PARTICULAR) {
+    $('subtitulo-faixa').textContent = 'Indique a sua data de nascimento e quanto quer contribuir por mês e veja quanto pode acumular até à idade de reforma e o valor estimado da sua pensão mensal.';
+    $('nota-texto').textContent = 'as contribuições começam na data da simulação. O valor mensal é escolhido por si (mínimo de ' + formatInteiro(CONTRIB_PARTICULAR_MIN) + ' Kz) e pode aumentar todos os anos, se assim o decidir.';
+    inpPart.placeholder = 'Mínimo ' + formatInteiro(CONTRIB_PARTICULAR_MIN);
+  }
+
   if (COMERCIAL) {
-    document.title = 'Simulador Comercial - Fundo de Pensões Complementar | NOSSA Seguros';
     var robots = document.createElement('meta');
     robots.name = 'robots';
     robots.content = 'noindex, nofollow';
@@ -819,13 +904,69 @@
     ['r-colab', 'r-empresa', 'r-vol', 'r-mensal', 'r-anual'].forEach(function (id) { $(id).textContent = '0,00 Kz'; });
     ['p-pensao', 'p-acumulado', 'p-contrib', 'p-rend'].forEach(function (id) { $(id).textContent = '0,00'; });
     ['o1-pensao', 'o2-capital', 'o2-pensao'].forEach(function (id) { $(id).textContent = '0,00 Kz'; });
+    $('alerta-minimo').hidden = true;
+  }
+
+  function mostrarErroCampo(inp, idErro, msg) {
+    inp.classList.toggle('invalido', !!msg);
+    $(idErro).hidden = !msg;
+    $(idErro).textContent = msg || '';
+  }
+
+  /* Pensão abaixo da mínima legal: a pensão é proporcional à contribuição mensal,
+     por isso a contribuição necessária obtém-se por regra de três simples. */
+  function alertaPensaoMinima(r, salario) {
+    var alerta = $('alerta-minimo');
+    if (!(r.pensao < PENSAO_MINIMA) || r.mensal <= 0) { alerta.hidden = true; return; }
+
+    var mensalNecessario = r.mensal * PENSAO_MINIMA / r.pensao;
+    var arredMil = function (v) { return Math.ceil(v / 1000) * 1000; };
+    var texto = 'A pensão estimada (' + formatInteiro(r.pensao) + ' Kz) é inferior à pensão mínima legal de ' +
+      formatInteiro(PENSAO_MINIMA) + ' Kz. ';
+
+    if (PARTICULAR) {
+      texto += 'Para a atingir, pode aumentar a sua contribuição mensal para cerca de ' +
+        formatInteiro(arredMil(mensalNecessario)) + ' Kz ou realizar periodicamente contribuições extraordinárias.';
+    } else {
+      var extra = arredMil(mensalNecessario - r.mensal);
+      var pctNecessaria = Math.ceil((mensalNecessario - r.empresa - r.voluntaria) / salario * 200) / 200;
+      texto += 'Para a atingir, pode ';
+      if (pctNecessaria <= CONTRIB_COLAB_MAX) {
+        texto += 'aumentar a sua contribuição para ' + formatPct(pctNecessaria) + ' do salário ou ';
+      }
+      texto += 'fazer uma contribuição voluntária adicional de cerca de ' + formatInteiro(extra) +
+        ' Kz por mês. Também pode realizar periodicamente contribuições extraordinárias.';
+    }
+    $('alerta-texto').textContent = texto;
+    alerta.hidden = false;
   }
 
   function calcular() {
     var hoje = lerData(hojeISO());
     var nasc = lerData(inpNasc.value);
-    var salario = parseKz(inpSalario);
-    var voluntaria = parseKz(inpVol);
+
+    /* dados de contribuição, conforme a versão */
+    var salario = 0, voluntaria = 0, contribPart = 0, pctColab = CONTRIB_COLAB_PADRAO, crescPart = 0;
+    var erroDados = false, falta = '';
+    if (PARTICULAR) {
+      contribPart = parseKz(inpPart);
+      crescPart = lerPct(inpCrescPart.value, 0, CRESC_PARTICULAR_MAX, 0);
+      mostrarErroCampo(inpPart, 'erro-particular', contribPart && contribPart < CONTRIB_PARTICULAR_MIN
+        ? 'A contribuição mínima é de ' + formatInteiro(CONTRIB_PARTICULAR_MIN) + ' Kz por mês.' : '');
+      mostrarErroCampo(inpCrescPart, 'erro-cresc', crescPart === null
+        ? 'Indique uma percentagem entre 0 e ' + formatPct(CRESC_PARTICULAR_MAX) + '.' : '');
+      erroDados = (contribPart && contribPart < CONTRIB_PARTICULAR_MIN) || crescPart === null;
+      if (!contribPart) falta = 'a contribuição mensal';
+    } else {
+      salario = parseKz(inpSalario);
+      voluntaria = parseKz(inpVol);
+      pctColab = lerPct(inpColab.value, CONTRIB_COLAB_MIN, CONTRIB_COLAB_MAX, null);
+      mostrarErroCampo(inpColab, 'erro-colab', pctColab === null
+        ? 'Indique uma percentagem entre ' + formatPct(CONTRIB_COLAB_MIN) + ' e ' + formatPct(CONTRIB_COLAB_MAX) + '.' : '');
+      erroDados = pctColab === null;
+      if (!salario) falta = 'o salário mensal';
+      $('r-colab-rotulo').textContent = 'Contribuição do colaborador (' + (pctColab === null ? '-' : formatPct(pctColab)) + ')';
+    }
 
     var erro = '';
     var idade = nasc ? idadeCompleta(nasc, hoje) : null;
@@ -842,24 +983,35 @@
     $('r-idade').textContent  = (idade !== null && !erro) ? idade + ' anos' : '-';
     $('r-inicio').textContent = 'Hoje, ' + formatData(hoje);
     $('r-anos').textContent   = (idade !== null && !erro) ? (P.IDADE_REFORMA - idade) + ' anos' : '-';
-    preencherTabelaTexto($('imp-pressupostos'));
+    preencherTabelaTexto($('imp-pressupostos'), PARTICULAR
+      ? [['Aumento anual da contribuição', formatPct(crescPart || 0)]]
+      : [['Contribuição do colaborador', pctColab === null ? '-' : formatPct(pctColab) + ' do salário']]);
 
-    if (!nasc || erro || !salario || erroPressupostos) {
+    var dados = PARTICULAR
+      ? { colab: contribPart, empresa: 0, voluntaria: 0, crescimento: crescPart || 0 }
+      : { colab: salario * (pctColab || 0), empresa: salario * P.CONTRIB_EMPRESA, voluntaria: voluntaria, crescimento: P.CRESCIMENTO_SALARIAL };
+    dados.inicio = hoje;
+
+    if (!nasc || erro || falta || erroDados || erroPressupostos) {
       ultimo = null;
       limparResultados();
-      if (salario && !erro && !erroPressupostos) {
-        var parcial = simular(salario, voluntaria, P.IDADE_REFORMA - 1, hoje);
+      if (!falta && !erro && !erroDados && !erroPressupostos) {
+        dados.idade = P.IDADE_REFORMA - 1;
+        var parcial = simular(dados);
         $('r-colab').textContent   = formatAOA(parcial.colab) + ' Kz';
         $('r-empresa').textContent = formatAOA(parcial.empresa) + ' Kz';
         $('r-vol').textContent     = formatAOA(parcial.voluntaria) + ' Kz';
         $('r-mensal').textContent  = formatAOA(parcial.mensal) + ' Kz';
         $('r-anual').textContent   = formatAOA(parcial.anual) + ' Kz';
       }
-      aviso.hidden = !erroPressupostos && (!!erro || (!!nasc && !!salario));
-      aviso.textContent = erroPressupostos ? 'Verifique os pressupostos assinalados a vermelho.'
-                        : !nasc && !salario ? 'Indique a data de nascimento e o salário mensal para ver a simulação.'
-                        : !nasc ? 'Indique a data de nascimento para calcular o valor na reforma.'
-                        : 'Indique o salário mensal para ver a simulação.';
+      var mensagem = erroPressupostos ? 'Verifique os pressupostos assinalados a vermelho.'
+                   : erroDados ? 'Verifique os campos assinalados a vermelho.'
+                   : erro ? ''
+                   : !nasc && falta ? 'Indique a data de nascimento e ' + falta + ' para ver a simulação.'
+                   : !nasc ? 'Indique a data de nascimento para calcular o valor na reforma.'
+                   : 'Indique ' + falta + ' para ver a simulação.';
+      aviso.hidden = !mensagem;
+      aviso.textContent = mensagem;
       btnImprimir.disabled = true;
       desenharGrafico(null);
       preencherTabela(null);
@@ -868,7 +1020,8 @@
 
     aviso.hidden = true;
     btnImprimir.disabled = false;
-    var r = simular(salario, voluntaria, idade, hoje);
+    dados.idade = idade;
+    var r = simular(dados);
     ultimo = r;
 
     $('r-colab').textContent   = formatAOA(r.colab) + ' Kz';
@@ -883,6 +1036,7 @@
     $('o1-pensao').textContent   = formatAOA(r.pensao) + ' Kz';
     $('o2-capital').textContent  = formatAOA(r.capitalMisto) + ' Kz';
     $('o2-pensao').textContent   = formatAOA(r.pensaoMista) + ' Kz';
+    alertaPensaoMinima(r, salario);
 
     desenharGrafico(r);
     preencherTabela(r);
@@ -1071,6 +1225,9 @@
   /* ================= Eventos ================= */
   inpSalario.addEventListener('input', function (e) { mascaraKz(e); calcular(); });
   inpVol.addEventListener('input', function (e) { mascaraKz(e); calcular(); });
+  inpPart.addEventListener('input', function (e) { mascaraKz(e); calcular(); });
+  inpColab.addEventListener('input', calcular);
+  inpCrescPart.addEventListener('input', calcular);
   inpNasc.addEventListener('input', calcular);
   inpNasc.addEventListener('change', calcular);
 

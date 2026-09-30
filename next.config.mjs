@@ -3,11 +3,13 @@ const nextConfig = {
   output: 'standalone',
   async rewrites() {
     return {
-      // a raiz serve directamente o simulador estático em public/index.html;
-      // /comercial serve a mesma página com os pressupostos editáveis
+      // todas as versões são a mesma página estática (public/index.html);
+      // a versão é escolhida no browser pelo caminho
       beforeFiles: [
         { source: '/', destination: '/index.html' },
         { source: '/comercial', destination: '/index.html' },
+        { source: '/particulares', destination: '/index.html' },
+        { source: '/particulares/comercial', destination: '/index.html' },
       ],
     };
   },
@@ -15,6 +17,7 @@ const nextConfig = {
     // a versão comercial é para uso interno: fora dos motores de busca
     return [
       { source: '/comercial', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+      { source: '/particulares/comercial', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     ];
   },
 };

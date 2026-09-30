@@ -3,6 +3,16 @@
 Aplicação Next.js que serve o simulador (página estática em `public/index.html`),
 com a mesma identidade visual do simulador de Empregados Domésticos.
 
+## Versões
+
+- `/` — versão pública (fórum/site), com os pressupostos fixos.
+- `/comercial` — versão para a equipa comercial, com os pressupostos editáveis cliente a
+  cliente (contribuições, rentabilidade, crescimento salarial, salários/ano, idade de
+  reforma, factor de conversão). Não é indexada pelos motores de busca
+  (`X-Robots-Tag: noindex`), mas não tem senha: quem tiver o link acede.
+
+É a mesma página (`public/index.html`); o modo comercial é detectado pelo caminho.
+
 ## Modelo de cálculo (base: Excel "Fundo de Pensões Complementar - Simulador", 29/09/2026)
 
 Pressupostos (constante `P` no `<script>` de `public/index.html`):
@@ -24,6 +34,8 @@ Cálculo:
 - Contribuição anual do ano `k` (k = 0..n−1) = mensal × 12 × (1,05)^k, entregue no início do ano.
 - Saldo no fim de cada ano = (saldo anterior + contribuição do ano) × 1,12.
 - Pensão mensal = valor acumulado / 11 / 12.
+- As contribuições começam na data da simulação; a tabela anual mostra o período de cada ano.
+- Opções na reforma: 100% em pensão, ou 50% em capital + pensão sobre os outros 50%.
 
 ### Diferenças face ao Excel original
 
@@ -35,8 +47,11 @@ Confirmado pela NOSSA (Albertina Napita, 29/09/2026): empresa 5%, pressupostos
 financeiros fixos, factor de conversão 11 igual para todos, fórmula corrigida
 aprovada, simulador para uso interno e externo (site público).
 
-Pendente: o que acontece depois da simulação (só PDF, pedido de contacto, email) e
-se a voluntária cresce com o salário (hoje cresce, como no Excel).
+Pendente (feedback de 30/09/2026): valor da pensão mínima legal e alerta, % do
+colaborador escolhida pelo participante, recolha de contactos (obrigatória? para onde?),
+data de adesão (futura ou participante actual com saldo), taxa de crescimento da pensão,
+versão para particulares (valor fixo, mínimo 10 000 Kz) e se a voluntária cresce com o
+salário (hoje cresce, como no Excel).
 
 ## Deploy com Docker
 

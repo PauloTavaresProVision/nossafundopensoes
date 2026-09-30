@@ -124,7 +124,7 @@
     display: block; margin-bottom: .3rem;
   }
   label .opc { font-weight: 400; color: var(--texto-claro); }
-  input[type="text"], input[type="date"] {
+  input[type="text"], input[type="date"], input[type="tel"], input[type="email"] {
     width: 100%;
     height: 2.65rem;
     padding: 0 .8rem;
@@ -351,7 +351,7 @@
   /* ================= Telemóvel ================= */
   @media (max-width: 560px) {
     /* 16px evita o zoom automático do iOS ao tocar nos campos */
-    input[type="text"], input[type="date"] { font-size: 16px; height: 2.9rem; }
+    input[type="text"], input[type="date"], input[type="tel"], input[type="email"] { font-size: 16px; height: 2.9rem; }
     .btn-tabela { width: 100%; min-height: 2.9rem; }
     .tabela-pressupostos input[type="text"] { width: 5.5rem; height: 2.6rem; }
     .grafico-topo > div { width: 100%; }
@@ -463,8 +463,21 @@
     <h2 class="section-header">Dados da Simulação</h2>
 
     <div class="campo">
-      <label for="nome">Nome <span class="opc">(opcional)</span></label>
-      <input type="text" id="nome" placeholder="Ex.: Joaquim dos Santos" autocomplete="name">
+      <label for="nome">Nome <span class="obrigatorio">*</span></label>
+      <input type="text" id="nome" placeholder="Ex.: Joaquim dos Santos" autocomplete="name" maxlength="100">
+    </div>
+
+    <div class="grid-2">
+      <div class="campo">
+        <label for="telefone">Telefone <span class="obrigatorio">*</span></label>
+        <input type="tel" id="telefone" placeholder="Ex.: 923 000 000" autocomplete="tel" inputmode="tel">
+        <p class="erro-campo" id="erro-telefone" hidden></p>
+      </div>
+      <div class="campo">
+        <label for="email">Email <span class="obrigatorio">*</span></label>
+        <input type="email" id="email" placeholder="Ex.: nome@exemplo.com" autocomplete="email" inputmode="email">
+        <p class="erro-campo" id="erro-email" hidden></p>
+      </div>
     </div>
 
     <div class="grid-2">
@@ -780,6 +793,25 @@
   var $ = function (id) { return document.getElementById(id); };
   var inpNome = $('nome'), inpNasc = $('nascimento'), inpSalario = $('salario'), inpVol = $('voluntaria');
   var inpColab = $('contrib-colab'), inpPart = $('contrib-particular'), inpCrescPart = $('cresc-particular');
+  var inpTelefone = $('telefone'), inpEmail = $('email');
+
+  /* ================= Contactos (obrigatórios; não aparecem no PDF) ================= */
+  /* aceita 9xx xxx xxx, com ou sem indicativo 244 */
+  function normalizarTelefone(valor) {
+    var d = valor.replace(/\D/g, '');
+    if (d.indexOf('244') === 0 && d.length === 12) d = d.slice(3);
+    return (d.length === 9 && d.charAt(0) === '9') ? d : null;
+  }
+  function emailValido(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+
+  /* o erro de formato só aparece depois de sair do campo, para não incomodar enquanto se escreve */
+  function validarContactos(mostrarErros) {
+    var tel = inpTelefone.value.trim(), mail = inpEmail.value.trim();
+    var telOk = !!normalizarTelefone(tel), mailOk = emailValido(mail);
+    if (mostrarErros || telOk) mostrarErroCampo(inpTelefone, 'erro-telefone', tel && !telOk ? 'Indique um telefone válido (9 dígitos, começado por 9).' : '');
+    if (mostrarErros || mailOk) mostrarErroCampo(inpEmail, 'erro-email', mail && !mailOk ? 'Indique um email válido.' : '');
+    return { nome: !!inpNome.value.trim(), telefone: telOk, email: mailOk };
+  }
   var erroNasc = $('erro-nascimento'), aviso = $('aviso-resultado'), btnImprimir = $('btn-imprimir');
   var ultimo = null;
 
@@ -968,6 +1000,15 @@
       $('r-colab-rotulo').textContent = 'Contribuição do colaborador (' + (pctColab === null ? '-' : formatPct(pctColab)) + ')';
     }
 
+    /* contactos em falta: juntam-se ao que falta preencher */
+    var c = validarContactos(false);
+    var faltaContactos = [];
+    if (!c.nome) faltaContactos.push('o nome');
+    if (!c.telefone) faltaContactos.push('o telefone');
+    if (!c.email) faltaContactos.push('o email');
+    var faltas = faltaContactos.concat(nasc ? [] : ['a data de nascimento'], falta ? [falta] : []);
+    var faltaTexto = faltas.length ? faltas.slice(0, -1).join(', ') + (faltas.length > 1 ? ' e ' : '') + faltas[faltas.length - 1] : '';
+
     var erro = '';
     var idade = nasc ? idadeCompleta(nasc, hoje) : null;
     if (nasc && nasc > hoje) erro = 'A data de nascimento não pode ser no futuro.';
@@ -992,7 +1033,7 @@
       : { colab: salario * (pctColab || 0), empresa: salario * P.CONTRIB_EMPRESA, voluntaria: voluntaria, crescimento: P.CRESCIMENTO_SALARIAL };
     dados.inicio = hoje;
 
-    if (!nasc || erro || falta || erroDados || erroPressupostos) {
+    if (faltaTexto || erro || erroDados || erroPressupostos) {
       ultimo = null;
       limparResultados();
       if (!falta && !erro && !erroDados && !erroPressupostos) {
@@ -1007,9 +1048,7 @@
       var mensagem = erroPressupostos ? 'Verifique os pressupostos assinalados a vermelho.'
                    : erroDados ? 'Verifique os campos assinalados a vermelho.'
                    : erro ? ''
-                   : !nasc && falta ? 'Indique a data de nascimento e ' + falta + ' para ver a simulação.'
-                   : !nasc ? 'Indique a data de nascimento para calcular o valor na reforma.'
-                   : 'Indique ' + falta + ' para ver a simulação.';
+                   : 'Indique ' + faltaTexto + ' para ver a simulação.';
       aviso.hidden = !mensagem;
       aviso.textContent = mensagem;
       btnImprimir.disabled = true;
@@ -1228,6 +1267,11 @@
   inpPart.addEventListener('input', function (e) { mascaraKz(e); calcular(); });
   inpColab.addEventListener('input', calcular);
   inpCrescPart.addEventListener('input', calcular);
+  inpNome.addEventListener('input', calcular);
+  [inpTelefone, inpEmail].forEach(function (inp) {
+    inp.addEventListener('input', calcular);
+    inp.addEventListener('blur', function () { validarContactos(true); });
+  });
   inpNasc.addEventListener('input', calcular);
   inpNasc.addEventListener('change', calcular);
 
